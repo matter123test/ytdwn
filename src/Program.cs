@@ -5,30 +5,27 @@ class Program
 {
     public static void Main(string[] args)
     {
+        if (args.Length == 0)
+        {
+            TitleScreen(clear: true);
+            RunWithoutConfigAsync().GetAwaiter().GetResult();
+            return;
+        }
+
         TitleScreen();
 
-        RunWithoutConfigAsync().GetAwaiter().GetResult();
+        ArgParse parser = new();
+        Config? config = parser.GetConfig(args);
 
-        // TODO: FIX ARG PARSER
-
-        // ArgParse parser = new();
-        // Config? config = parser.GetConfigFromArgs(args);
-
-        // if (args.Length > 0)
-        // {
-        //     Console.WriteLine($"IS NULL : {config == null}");
-        //     if (config == null) return;
-        //     RunWithConfigAsync(config).GetAwaiter().GetResult();
-        // }
-        // else
-        // {
-        //     RunWithoutConfigAsync().GetAwaiter().GetResult();
-        // }
+        if (config != null)
+        {
+            RunWithConfigAsync(config).GetAwaiter().GetResult();
+        }
     }
 
-    static void TitleScreen()
+    static void TitleScreen(bool clear = false)
     {
-        AnsiConsole.Clear();
+        if (clear) AnsiConsole.Clear();
         AnsiConsole.Write(
             new FigletText("YTDWN")
                 .Centered()
