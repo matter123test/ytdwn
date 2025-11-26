@@ -7,18 +7,23 @@ class Program
     {
         TitleScreen();
 
-        ArgParse parser = new();
-        Config? config = parser.GetConfigFromArgs(args);
+        RunWithoutConfigAsync().GetAwaiter().GetResult();
 
-        if (args.Length > 0)
-        {
-            if (config == null) return;
-            RunWithConfigAsync(config).GetAwaiter().GetResult();
-        }
-        else
-        {
-            RunWithoutConfigAsync().GetAwaiter().GetResult();
-        }
+        // TODO: FIX ARG PARSER
+
+        // ArgParse parser = new();
+        // Config? config = parser.GetConfigFromArgs(args);
+
+        // if (args.Length > 0)
+        // {
+        //     Console.WriteLine($"IS NULL : {config == null}");
+        //     if (config == null) return;
+        //     RunWithConfigAsync(config).GetAwaiter().GetResult();
+        // }
+        // else
+        // {
+        //     RunWithoutConfigAsync().GetAwaiter().GetResult();
+        // }
     }
 
     static void TitleScreen()
@@ -44,7 +49,7 @@ class Program
                         {
                             return ValidationResult.Error("File is not a CSV file!");
                         }
-                        
+
                         return ValidationResult.Success();
                     }
                     else if (!File.Exists(path))

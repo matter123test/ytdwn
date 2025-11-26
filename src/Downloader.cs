@@ -24,7 +24,6 @@ class Downloader
 
     }
 
-
     public static async Task ConvertToMp3ParallelAsync(string[] filePaths)
     {
         int current = 0;

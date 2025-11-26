@@ -41,7 +41,7 @@ class ArgParse()
         string? trackField = null;
         string? authorField = null;
 
-        bool shouldReturnNull = true;
+        bool shouldReturnNull = false;
 
         rootCommand.Validators.Add(result =>
         {
@@ -50,20 +50,26 @@ class ArgParse()
             trackField = result.GetValue(trackFieldOption);
             authorField = result.GetValue(authorFieldOption);
 
-            List<string> errors = new();
+            List<string> errors = [];
 
             if (csvFilePath != null && outputFolderPath == null)
+            {
                 errors.Add("--output is required when --path is provided");
+                shouldReturnNull = true;
+            }
 
             if (csvFilePath != null && (trackField == null || authorField == null))
+            {
                 errors.Add("--trackfield and --authorfield are required when --path is provided");
+                shouldReturnNull = true;
+            }
 
-            if (errors.Count > 0)
-                result.AddError(string.Join("\n", errors));
+            if (errors.Count > 0) result.AddError(string.Join("\n", errors));
         });
 
         rootCommand.Parse(args).Invoke();
 
+        shouldReturnNull = csvFilePath != null && outputFolderPath != null && trackField != null && authorField != null;
         if (shouldReturnNull) return null;
 
         rootCommand.SetAction(parseResult =>
