@@ -36,20 +36,20 @@ class Program
 
         string csvFilePath = AnsiConsole.Prompt(
             new TextPrompt<string>("CSV file path: ")
-                .DefaultValue("library.csv")
                 .Validate(path =>
                 {
                     if (File.Exists(path))
                     {
+                        if (!Path.GetExtension(path).ToLower().Equals(".csv"))
+                        {
+                            return ValidationResult.Error("File is not a CSV file!");
+                        }
+                        
                         return ValidationResult.Success();
                     }
                     else if (!File.Exists(path))
                     {
                         return ValidationResult.Error("File doesn't exist!");
-                    }
-                    else if (Path.GetExtension(path).ToLower() != ".csv")
-                    {
-                        return ValidationResult.Error("File is not a CSV file!");
                     }
                     else
                     {
@@ -57,7 +57,7 @@ class Program
                     }
                 })
         );
-        
+
         bool convertToMp3 = AnsiConsole.Prompt(
             new TextPrompt<bool>("Convert audio to mp3? ")
                 .AddChoice(true)
