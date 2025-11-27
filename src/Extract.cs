@@ -25,7 +25,7 @@ class Extractor()
     }
 
 
-    public static List<PlaylistItem> GetPlaylistFromCSV(string path, string trackNameField, string artistNameField)
+    public static List<PlaylistItem>? GetPlaylistFromCSV(string path, string trackNameField, string artistNameField)
     {
         var playlist = new List<PlaylistItem>();
 
@@ -37,11 +37,20 @@ class Extractor()
 
             while (csv.Read())
             {
-                string trackName = csv.GetField<string>(trackNameField)!;
-                string artistName = csv.GetField<string>(artistNameField)!;
+                try
+                {
+                    string trackName = csv.GetField<string>(trackNameField)!;
+                    string artistName = csv.GetField<string>(artistNameField)!;
 
 
-                playlist.Add(new PlaylistItem(trackName, artistName));
+                    playlist.Add(new PlaylistItem(trackName, artistName));
+
+                }
+                catch (CsvHelper.MissingFieldException)
+                {
+                    AnsiConsole.WriteLine($"❌ Fields: \"{trackNameField}\" or \"{artistNameField}\" do not exist!");
+                    return null;
+                } 
             }
         }
 
