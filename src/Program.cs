@@ -15,12 +15,18 @@ class Program
         TitleScreen();
 
         ArgParse parser = new();
-        Config? config = parser.GetConfig(args);
+        (ArgParseResult result, Config? config) = parser.GetConfig(args);
 
-        if (config != null)
+        if (result == ArgParseResult.ERROR) return;
+        else if (result == ArgParseResult.PLAYLIST_DOWNLOAD)
         {
-            config.PrintOut();
+            config!.PrintOut();
             Runner.RunWithConfigAsync(config).GetAwaiter().GetResult();
+        }
+        else if (result == ArgParseResult.SINGLE_DOWNLOAD)
+        {
+            config!.PrintOut();
+            Runner.RunDownloadFromUrl(config).GetAwaiter().GetResult();
         }
     }
 

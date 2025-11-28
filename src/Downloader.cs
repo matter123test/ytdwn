@@ -6,7 +6,7 @@ using FFMpegCore;
 
 class Downloader
 {
-    private static async Task ConvertToMp3Async(string filePath)
+    public static async Task ConvertToMp3Async(string filePath)
     {
         if (!Path.GetExtension(filePath).ToLower().Equals(".mp3"))
         {
@@ -21,8 +21,19 @@ class Downloader
 
             File.Delete(filePath);
         }
-
     }
+
+    public static async Task ConvertToMp3AsyncWithProgress(string filePath)
+    {
+        AnsiConsole.Status()
+        .Spinner(Spinner.Known.Aesthetic)
+        .Start("Converting", ctx =>
+        {
+            ConvertToMp3Async(filePath).GetAwaiter().GetResult();
+            AnsiConsole.MarkupLine("[bold green]File converted![/]");
+        });
+    }
+    
 
     public static async Task ConvertToMp3ParallelAsync(string[] filePaths)
     {
@@ -77,7 +88,8 @@ class Downloader
 
     public static async Task DownloadAsync(string url, string outputFolder)
     {
-        var youtubeClient = new YoutubeClient();
+        using var youtubeClient = new YoutubeClient();
+
         var video = await youtubeClient.Videos.GetAsync(url);
         string title = video.Title;
         string author = video.Author.ChannelTitle;
@@ -89,8 +101,51 @@ class Downloader
         string fullPath = GetPath(outputFolder, title, author, streamInfo);
         AnsiConsole.WriteLine(fullPath);
         await youtubeClient.Videos.Streams.DownloadAsync(streamInfo, fullPath);
+    }
 
-        youtubeClient.Dispose();
+    /// <summary>
+    /// Downloads asynchronously a single video from the given url with a progress bar displaying
+    /// </summary>
+    /// <returns>The downloaded file path</returns>
+    public static async Task<string> DownloadAsyncWithProgress(string url, string outputFolder)
+    {
+        using var youtubeClient = new YoutubeClient();
+
+        var video = await youtubeClient.Videos.GetAsync(url);
+        string title = video.Title;
+        string author = video.Author.ChannelTitle;
+
+        var streamManifest = await youtubeClient.Videos.Streams.GetManifestAsync(url);
+        var streamInfo = streamManifest.GetAudioOnlyStreams().GetWithHighestBitrate();
+
+        string fullPath = GetPath(outputFolder, title, author, streamInfo);
+        AnsiConsole.WriteLine(fullPath);
+
+        AnsiConsole.WriteLine("Starting single download");
+
+        await AnsiConsole.Progress().StartAsync(async ctx =>
+        {
+            var task = ctx.AddTask($"[blue]Downloading {url} audio[/]", maxValue: 100);
+
+            try
+            {
+                await youtubeClient.Videos.Streams.DownloadAsync(streamInfo, fullPath, new Progress<double>(p =>
+                {
+                    task.Value = p * 100;
+                    ctx.Refresh();
+                }));
+            }
+            catch (Exception e)
+            {
+                AnsiConsole.WriteException(e);
+            }
+
+            task.Value = task.MaxValue;
+            task.Description = "[green]Download complete[/]";
+            ctx.Refresh();
+        });
+
+        return fullPath;
     }
 
     public static async Task DownloadAsyncParallel(List<string> urls, string outputFolder)

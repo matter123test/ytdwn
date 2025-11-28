@@ -1,13 +1,13 @@
 using Spectre.Console;
 
-class Config(string csvFilePath, bool convertToMp3, string outputFolderPath, string trackField, string authorField, string urlToDownload)
+class Config(string? csvFilePath, bool convertToMp3, string? outputFolderPath, string? trackField, string? authorField, string? urlToDownload)
 {
-    public readonly string CsvFilePath = csvFilePath;
+    public readonly string? CsvFilePath = csvFilePath;
     public readonly bool ConvertToMp3 = convertToMp3;
-    public readonly string OutputFolderPath = outputFolderPath;
-    public readonly string TrackField = trackField;
-    public readonly string AuthorField = authorField;
-    public readonly string UrlToDownload = urlToDownload;
+    public readonly string? OutputFolderPath = outputFolderPath;
+    public readonly string? TrackField = trackField;
+    public readonly string? AuthorField = authorField;
+    public readonly string? UrlToDownload = urlToDownload;
 
     public void PrintOut()
     {

@@ -89,10 +89,14 @@ class Runner
         }
     }
 
-
-    //TODO: FINISH SINGLE_DOWNLOAD FUNCTIONS
     public static async Task RunDownloadFromUrl(Config config)
     {
-        // await Downloader.DownloadAsync()
+        string path = await Downloader.DownloadAsyncWithProgress(config.UrlToDownload, config.OutputFolderPath);
+
+        if (config.ConvertToMp3)
+        {
+            AnsiConsole.Write(new Rule());
+            await Downloader.ConvertToMp3AsyncWithProgress(path);
+        }
     }
 }

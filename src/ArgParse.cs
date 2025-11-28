@@ -3,7 +3,8 @@ using System.CommandLine;
 enum ArgParseResult
 {
     SINGLE_DOWNLOAD,
-    PLAYLIST_DOWNLOAD
+    PLAYLIST_DOWNLOAD,
+    ERROR
 }
 
 class ArgParse()
@@ -46,10 +47,13 @@ class ArgParse()
         Description = "Video url to download"
     };
 
-    public Config? GetConfig(string[] args)
+    public (ArgParseResult, Config?) GetConfig(string[] args)
     {
         // Add commands
-        List<Option> options = [csvFilePathOption, convertToMp3Option, outputFolderPathOption, trackFieldOption, authorFieldOption];
+        List<Option> options = [
+            csvFilePathOption, convertToMp3Option, outputFolderPathOption, trackFieldOption, authorFieldOption,
+            videoUrlToDownloadOption
+            ];
         options.ForEach(rootCommand.Options.Add);
 
         string? csvFilePath = null;
@@ -58,7 +62,7 @@ class ArgParse()
         string? trackField = null;
         string? authorField = null;
 
-        string? videoQueryToDownload = null;
+        // string? videoQueryToDownload = null;
         string? videoUrlToDownload = null;
 
         rootCommand.SetAction(parseResult =>
@@ -69,19 +73,22 @@ class ArgParse()
             trackField = parseResult.GetValue(trackFieldOption);
             authorField = parseResult.GetValue(authorFieldOption);
 
-            videoQueryToDownload = parseResult.GetValue(videoQueryToDownloadOption);
+            // videoQueryToDownload = parseResult.GetValue(videoQueryToDownloadOption);
             videoUrlToDownload = parseResult.GetValue(videoUrlToDownloadOption);
         });
 
         rootCommand.Parse(args).Invoke();
 
-        if (csvFilePath == null && outputFolderPath == null && trackField == null && authorField == null)
+        if (csvFilePath != null && outputFolderPath != null && trackField != null && authorField != null)
         {
-            return null;
+            return (ArgParseResult.PLAYLIST_DOWNLOAD, new Config(csvFilePath!, convertToMp3!, outputFolderPath!, trackField!, authorField!, videoUrlToDownload));
+
         }
-        else
+        else if (videoUrlToDownload != null && outputFolderPath != null)
         {
-            return new Config(csvFilePath!, convertToMp3!, outputFolderPath!, trackField!, authorField!, videoUrlToDownload);
+            return (ArgParseResult.SINGLE_DOWNLOAD, new Config(null, convertToMp3, outputFolderPath, null, null, videoUrlToDownload));
         }
+
+        return (ArgParseResult.ERROR, null);
     }
 }
